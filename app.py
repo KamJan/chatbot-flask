@@ -2,10 +2,11 @@ import os
 import pickle
 import numpy as np
 from flask import Flask, request, jsonify, render_template
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 from tqdm import tqdm
 from numpy.linalg import norm
 
+# --- Configuration ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY not set")
@@ -14,20 +15,31 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 EMBEDDINGS_FILE = "embeddings.pkl"
 CONTENT_FILE = "content.txt"  # Use relative path for deployment
 
+# --- Utility Functions ---
+
 def load_content():
+    """Load course content and split into chunks."""
+    if not os.path.exists(CONTENT_FILE):
+        raise FileNotFoundError(f"{CONTENT_FILE} not found.")
     with open(CONTENT_FILE, "r", encoding="utf-8") as f:
         content = f.read()
     chunks = [chunk.strip() for chunk in content.split('\n\n') if chunk.strip()]
     return chunks
 
 def get_embedding(text):
-    response = client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
-    return response.data[0].embedding
+    """Get embedding for text using OpenAI."""
+    try:
+        response = client.embeddings.create(
+            input=text,
+            model="text-embedding-3-small"
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        print(f"Error getting embedding: {e}")
+        raise
 
 def build_embeddings():
+    """Build and save embeddings for all content chunks."""
     chunks = load_content()
     embeddings = []
     for chunk in tqdm(chunks, desc="Embedding content"):
@@ -37,11 +49,15 @@ def build_embeddings():
         pickle.dump({"chunks": chunks, "embeddings": embeddings}, f)
 
 def cosine_similarity(a, b):
+    """Compute cosine similarity between two vectors."""
     a = np.array(a)
     b = np.array(b)
     return np.dot(a, b) / (norm(a) * norm(b))
 
 def find_relevant_chunks(question, top_k=3):
+    """Find the most relevant content chunks for a question."""
+    if not os.path.exists(EMBEDDINGS_FILE):
+        raise FileNotFoundError(f"{EMBEDDINGS_FILE} not found. Run 'python app.py embed' to generate it.")
     with open(EMBEDDINGS_FILE, "rb") as f:
         data = pickle.load(f)
     chunks = data["chunks"]
@@ -51,26 +67,50 @@ def find_relevant_chunks(question, top_k=3):
     top_indices = np.argsort(sims)[-top_k:][::-1]
     return [chunks[i] for i in top_indices]
 
+# --- Flask App ---
+
 app = Flask(__name__)
 
 @app.route('/')
 def home():
+    """Serve the chatbot UI."""
     return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    user_message = request.json['message']
-    relevant_chunks = find_relevant_chunks(user_message)
-    context = "\n\n".join(relevant_chunks)
-    prompt = f"Use the following course materials to answer the question.\n\nMaterials:\n{context}\n\nQuestion: {user_message}\nAnswer:"
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=300,
-        temperature=0.2
-    )
-    answer = response.choices[0].message.content.strip()
-    return jsonify({'response': answer})
+    """Handle chat requests from the frontend."""
+    try:
+        user_message = request.json.get('message', '').strip()
+        if not user_message:
+            return jsonify({'response': "Please enter a question."}), 400
+
+        relevant_chunks = find_relevant_chunks(user_message)
+        context = "\n\n".join(relevant_chunks)
+        prompt = (
+            "Use the following course materials to answer the question.\n\n"
+            f"Materials:\n{context}\n\n"
+            f"Question: {user_message}\nAnswer:"
+        )
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+            temperature=0.2
+        )
+        answer = response.choices[0].message.content.strip()
+        return jsonify({'response': answer})
+
+    except FileNotFoundError as e:
+        return jsonify({'response': str(e)}), 500
+    except OpenAIError as e:
+        return jsonify({'response': f"OpenAI API error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({'response': f"An error occurred: {str(e)}"}), 500
+
+@app.route('/health')
+def health():
+    """Health check endpoint for Render and monitoring."""
+    return "ok", 200
 
 if __name__ == "__main__":
     import sys
