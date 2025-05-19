@@ -1,19 +1,18 @@
 import os
 import pickle
 import numpy as np
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from openai import OpenAI
 from tqdm import tqdm
 from numpy.linalg import norm
 
-# Use environment variable for API key
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY not set")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 EMBEDDINGS_FILE = "embeddings.pkl"
-CONTENT_FILE = r"content.txt"
+CONTENT_FILE = "content.txt"  # Use relative path for deployment
 
 def load_content():
     with open(CONTENT_FILE, "r", encoding="utf-8") as f:
@@ -54,9 +53,9 @@ def find_relevant_chunks(question, top_k=3):
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
-def index():
-    return 'Chatbot is running! Use the /chat endpoint with a POST request.'
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
