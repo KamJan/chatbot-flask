@@ -7,9 +7,10 @@
 </head>
 <body>
     <h1>Chatbot</h1>
+    <h2>This chatbot is designed to help you by answering questions related to course materials, including specific case studies such as Case Study 1. Whether you need clarification on concepts, guidance on assignments, or detailed explanations about a particular case study, the chatbot is here to support your learning journey.</h2>
     <div id="chat"></div>
-    <input type="text" id="msg" placeholder="Napisz wiadomość..." />
-    <button onclick="sendMsg()">Wyślij</button>
+    <input type="text" id="msg" placeholder="Ask question here" />
+    <button onclick="sendMsg()">Send</button>
     <script>
         async function sendMsg() {
             const msg = document.getElementById('msg').value;
