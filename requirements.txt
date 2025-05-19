@@ -3,3 +3,4 @@ openai
 numpy
 tqdm
 flask-cors
+gunicorn
