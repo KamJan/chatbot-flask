@@ -54,6 +54,10 @@ def find_relevant_chunks(question, top_k=3):
 
 app = Flask(__name__)
 
+@app.route('/', methods=['GET'])
+def index():
+    return 'Chatbot is running! Use the /chat endpoint with a POST request.'
+
 @app.route('/chat', methods=['POST'])
 def chat():
     user_message = request.json['message']
