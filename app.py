@@ -13,7 +13,7 @@ if not OPENAI_API_KEY:
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 EMBEDDINGS_FILE = "embeddings.pkl"
-CONTENT_FILE = r"C:\Users\ntzkj1\Desktop\Moodle chatbot\content.txt"
+CONTENT_FILE = r"content.txt"
 
 def load_content():
     with open(CONTENT_FILE, "r", encoding="utf-8") as f:
