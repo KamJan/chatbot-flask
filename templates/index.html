@@ -1,29 +1,202 @@
-
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mój Chatbot</title>
+    <title>Student Case Study Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.07);
+            padding: 0 0 24px 0;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            background: #00447c;
+            color: #fff;
+            border-radius: 16px 16px 0 0;
+            padding: 24px 24px 16px 24px;
+        }
+        .profile-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .header-text h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        .header-text p {
+            margin: 4px 0 0 0;
+            font-size: 1em;
+            opacity: 0.95;
+        }
+        .intro {
+            padding: 20px 24px 0 24px;
+            font-size: 1.08em;
+            color: #222;
+        }
+        #chat {
+            margin: 20px 24px 0 24px;
+            min-height: 200px;
+            max-height: 320px;
+            overflow-y: auto;
+            background: #f3f6fa;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .msg-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        .msg-user {
+            margin-left: auto;
+            background: #e1f0ff;
+            color: #00447c;
+            border-radius: 16px 16px 2px 16px;
+            padding: 10px 16px;
+            max-width: 75%;
+            word-break: break-word;
+        }
+        .msg-bot {
+            margin-right: auto;
+            background: #e6ffe1;
+            color: #267a2b;
+            border-radius: 16px 16px 16px 2px;
+            padding: 10px 16px;
+            max-width: 75%;
+            word-break: break-word;
+        }
+        .input-area {
+            display: flex;
+            align-items: center;
+            margin: 24px 24px 0 24px;
+        }
+        #msg {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cfd8dc;
+            border-radius: 8px;
+            font-size: 1em;
+            outline: none;
+            margin-right: 10px;
+        }
+        #msg:focus {
+            border-color: #00447c;
+        }
+        #send-btn {
+            background: #00447c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 22px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #send-btn:hover {
+            background: #267a2b;
+        }
+        @media (max-width: 600px) {
+            .container { max-width: 98vw; margin: 8px; }
+            .header, .intro, #chat, .input-area { padding-left: 10px; padding-right: 10px; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Chatbot</h1>
-    <h2>This chatbot is designed to help you by answering questions related to course materials, including specific case studies such as Case Study 1. Whether you need clarification on concepts, guidance on assignments, or detailed explanations about a particular case study, the chatbot is here to support your learning journey.</h2>
-    <div id="chat"></div>
-    <input type="text" id="msg" placeholder="Ask question here" />
-    <button onclick="sendMsg()">Send</button>
+    <div class="container">
+        <div class="header">
+            <img class="profile-img" src="https://www.nottingham.ac.uk/Profiles/Images/roger.kerry.jpg" alt="Prof Roger Kerry">
+            <div class="header-text">
+                <h1>Case Study 1 Chatbot</h1>
+                <p>with Prof Roger Kerry<br><span style="font-size:0.9em;opacity:0.8;">University of Nottingham</span></p>
+            </div>
+        </div>
+        <div class="intro">
+            <p>
+                Welcome! This chatbot is designed to help you by answering questions related to the case study 1, including specific case studies such as <strong>Case Study 1</strong>.<br>
+                <br>
+                <b>How to use:</b>
+                <ul>
+                    <li>Type your question below (e.g., "What are the main findings of Case Study 1?").</li>
+                    <li>Click <b>Send</b> or press <b>Enter</b>.</li>
+                    <li>The chatbot will respond with information and guidance.</li>
+                </ul>
+                <span style="color:#666;font-size:0.97em;">Tip: Ask clear, specific questions for best results!</span>
+            </p>
+        </div>
+        <div id="chat"></div>
+        <div class="input-area">
+            <input type="text" id="msg" placeholder="Ask your question here..." autocomplete="off" />
+            <button id="send-btn" onclick="sendMsg()">Send</button>
+        </div>
+    </div>
     <script>
-        async function sendMsg() {
-            const msg = document.getElementById('msg').value;
-            document.getElementById('chat').innerHTML += `<div><b>Ty:</b> ${msg}</div>`;
-            const res = await fetch('/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: msg})
-            });
-            const data = await res.json();
-            document.getElementById('chat').innerHTML += `<div><b>Bot:</b> ${data.response}</div>`;
-            document.getElementById('msg').value = '';
+        const chat = document.getElementById('chat');
+        const msgInput = document.getElementById('msg');
+
+        // Optional: Welcome message
+        function appendBotMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            row.innerHTML = `<div class="msg-bot">${text}</div>`;
+            chat.appendChild(row);
+            chat.scrollTop = chat.scrollHeight;
         }
+        function appendUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            row.innerHTML = `<div class="msg-user">${text}</div>`;
+            chat.appendChild(row);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Initial welcome
+        appendBotMessage('Hello! I am here to help you with your course questions. Ask me anything about the case studies or course materials.');
+
+        async function sendMsg() {
+            const msg = msgInput.value.trim();
+            if (!msg) return;
+            appendUserMessage(msg);
+            msgInput.value = '';
+            msgInput.disabled = true;
+            document.getElementById('send-btn').disabled = true;
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                if (!res.ok) throw new Error('Server error');
+                const data = await res.json();
+                appendBotMessage(data.response);
+            } catch (err) {
+                appendBotMessage('Sorry, there was an error. Please try again.');
+            }
+            msgInput.disabled = false;
+            document.getElementById('send-btn').disabled = false;
+            msgInput.focus();
+        }
+
+        // Send message on Enter key
+        msgInput.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') sendMsg();
+        });
     </script>
 </body>
 </html>
