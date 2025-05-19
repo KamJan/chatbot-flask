@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Mój Chatbot</title>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chat"></div>
+    <input type="text" id="msg" placeholder="Napisz wiadomość..." />
+    <button onclick="sendMsg()">Wyślij</button>
+    <script>
+        async function sendMsg() {
+            const msg = document.getElementById('msg').value;
+            document.getElementById('chat').innerHTML += `<div><b>Ty:</b> ${msg}</div>`;
+            const res = await fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: msg})
+            });
+            const data = await res.json();
+            document.getElementById('chat').innerHTML += `<div><b>Bot:</b> ${data.response}</div>`;
+            document.getElementById('msg').value = '';
+        }
+    </script>
+</body>
+</html>

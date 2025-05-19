@@ -1,0 +1,42 @@
+import os
+import pickle
+import numpy as np
+from flask import Flask, request, jsonify
+from openai import OpenAI
+from tqdm import tqdm
+
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"  # Replace with your key
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+EMBEDDINGS_FILE = "embeddings.pkl"
+CONTENT_FILE = "content.txt"
+
+def load_content():
+    with open(CONTENT_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
+    # Split by double newlines (paragraphs)
+    chunks = [chunk.strip() for chunk in content.split('\n\n') if chunk.strip()]
+    return chunks
+
+def get_embedding(text):
+    response = client.embeddings.create(
+        input=text,
+        model="text-embedding-3-small"
+    )
+    return response.data[0].embedding
+
+def build_embeddings():
+    chunks = load_content()
+    embeddings = []
+    for chunk in tqdm(chunks, desc="Embedding content"):
+        emb = get_embedding(chunk)
+        embeddings.append(emb)
+    with open(EMBEDDINGS_FILE, "wb") as f:
+        pickle.dump({"chunks": chunks, "embeddings": embeddings}, f)
+
+if __name__ == "__main__":
+    if not os.path.exists(EMBEDDINGS_FILE):
+        print("Generating embeddings...")
+        build_embeddings()
+        print("Embeddings saved.")
