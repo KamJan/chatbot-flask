@@ -107,17 +107,19 @@ def chat():
     except Exception as e:
         return jsonify({'response': f"An error occurred: {str(e)}"}), 500
 
-@app.route('/health')
-def health():
-    """Health check endpoint for Render and monitoring."""
-    return "ok", 200
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1 and sys.argv[1] == "embed":
-        print("Generating embeddings...")
-        build_embeddings()
-        print("Embeddings saved.")
-    else:
-        port = int(os.environ.get("PORT", 10000))
-        app.run(host="0.0.0.0", port=port)
+@app.route('/chat', methods=['POST'])
+def chat():
+    try:
+        # ... your existing code ...
+        return jsonify({'response': answer})
+    except FileNotFoundError as e:
+        print(f"FileNotFoundError: {e}")
+        return jsonify({'response': str(e)}), 500
+    except OpenAIError as e:
+        print(f"OpenAIError: {e}")
+        return jsonify({'response': f"OpenAI API error: {str(e)}"}), 500
+    except Exception as e:
+        import traceback
+        print("Exception:", e)
+        traceback.print_exc()
+        return jsonify({'response': f"An error occurred: {str(e)}"}), 500
