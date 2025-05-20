@@ -1,0 +1,21 @@
+# render.yaml for deploying a Flask app with precomputed embeddings.pkl
+
+services:
+  - type: web
+    name: chatbot-flask
+    env: python
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: |
+      gunicorn app:app
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false  # Set this in the Render dashboard, not in code!
+    # Optional: If your embeddings.pkl is large, you may want to mount a disk or use a persistent volume.
+    # persistentDirs:
+    #   - path: /data
+
+# Notes:
+# - This assumes embeddings.pkl exists in your repo (not in .gitignore).
+# - If you want to (re)generate embeddings on deploy, add: python app.py embed && before gunicorn.
+# - If you use a different entry point or port, adjust accordingly.
