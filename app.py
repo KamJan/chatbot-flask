@@ -101,18 +101,6 @@ def chat():
         return jsonify({'response': answer})
 
     except FileNotFoundError as e:
-        return jsonify({'response': str(e)}), 500
-    except OpenAIError as e:
-        return jsonify({'response': f"OpenAI API error: {str(e)}"}), 500
-    except Exception as e:
-        return jsonify({'response': f"An error occurred: {str(e)}"}), 500
-
-@app.route('/chat', methods=['POST'])
-def chat():
-    try:
-        # ... your existing code ...
-        return jsonify({'response': answer})
-    except FileNotFoundError as e:
         print(f"FileNotFoundError: {e}")
         return jsonify({'response': str(e)}), 500
     except OpenAIError as e:
