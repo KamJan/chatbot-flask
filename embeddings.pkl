@@ -17,6 +17,7 @@ CONTENT_FILE = "content.txt"  # Use relative path for deployment
 
 # --- Utility Functions ---
 
+
 def load_content():
     """Load course content and split into chunks."""
     if not os.path.exists(CONTENT_FILE):
