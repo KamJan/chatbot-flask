@@ -4,16 +4,23 @@ services:
   - type: web
     name: chatbot-flask
     env: python
+    
     buildCommand: |
       pip install -r requirements.txt
+      python app.py embed  # or whatever runs build_embeddings()
     startCommand: |
       gunicorn app:app
+
+      
     envVars:
       - key: OPENAI_API_KEY
         sync: false  # Set this in the Render dashboard, not in code!
     # Optional: If your embeddings.pkl is large, you may want to mount a disk or use a persistent volume.
     # persistentDirs:
     #   - path: /data
+
+
+
 
 # Notes:
 # - This assumes embeddings.pkl exists in your repo (not in .gitignore).
