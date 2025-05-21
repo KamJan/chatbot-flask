@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="eng">
 <head>
     <meta charset="UTF-8">
-    <title>Mój Chatbot</title>
+    <title>\\Physiotheraphy Chatbot</title>
 </head>
 <body>
     <h1>Chatbot</h1>
     <div id="chat"></div>
     <input type="text" id="msg" placeholder="Napisz wiadomość..." />
-    <button onclick="sendMsg()">Wyślij</button>
+    <button onclick="sendMsg()">Send</button>
     <script>
         async function sendMsg() {
             const msg = document.getElementById('msg').value;
